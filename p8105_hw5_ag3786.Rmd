@@ -163,3 +163,27 @@ wapo_homicide_summary %>%
   rename("City, State" = city_state, "Unsolved Homicides" = unsolved_homicides, "Total Homicides" = total_homicides, "Proportion of Unsolved Cases in Baltimore" = estimate, "Lower bound (95% CI)" = conf_low, "Upper bound (95% CI)" = conf_high) %>% 
   knitr::kable()
 ```
+
+## Create a plot
+Create a plot that shows the estimates and CIs for each city – check out geom_errorbar for a way to add error bars based on the upper and lower limits. Organize cities according to the proportion of unsolved homicides.
+
+```{r}
+wapo_homicide_summary %>% 
+  mutate(city_state = forcats::fct_reorder(city_state, desc(estimate))) %>%
+  ggplot(aes(x = city_state, y = estimate, color = city_state)) + 
+    geom_point() +
+    geom_errorbar(aes(ymin = conf_low, ymax = conf_high, width = 0.2)) + 
+    theme(axis.text.x = element_text(angle = 60, hjust = 1)) + 
+    labs(
+        title = "Proportion of Unsolved Homicides in 50 Large Cities",
+        x = "City, State",
+        y = "Proportion of Unsolved Cases", 
+        caption = "Data from the Washington Post"
+      ) +
+    theme(legend.position = "none") +
+    viridis::scale_color_viridis(
+      discrete = TRUE
+    )
+```
+
+The city with the largest proportion of unsolved homicides is Chicago and the lowest proportion of unsolved homicides is Richmond Virginia. 
