@@ -109,13 +109,41 @@ These data have been reported from `r count(wapo_homicide, city) %>% nrow()` cit
 Create a `city_state` variable (e.g. “Baltimore, MD”) and then summarize within cities to obtain the total number of homicides and the number of unsolved homicides (those for which the disposition is “Closed without arrest” or “Open/No arrest”).
 
 ```{r}
-  wapo_homicide = 
-  wapo_homicide %>% 
+  wapo_homicide_summary = wapo_homicide %>% 
   mutate(city_state = str_c(city, state, sep = ", ")) %>% 
   group_by(city_state) %>% 
   mutate(total_homicides_city = n()) %>% 
   filter(disposition %in% c("Closed without arrest", "Open/No arrest")) %>% 
   summarise(unsolved_homicides = n(),
-            total_homicides = max(total_homicides_city)) %>% 
+            total_homicides = max(total_homicides_city)) 
+
+wapo_homicide_summary %>% 
+  rename("City, State" = city_state, "Unsolved Homicides" = unsolved_homicides, 
+         "Total Homicides" = total_homicides) %>% 
+  knitr::kable()
+```
+
+## Unsolved homicides in Baltimore
+
+For the city of Baltimore, MD, use the prop.test function to estimate the proportion of homicides that are unsolved; save the output of prop.test as an R object, apply the broom::tidy to this object and pull the estimated proportion and confidence intervals from the resulting tidy dataframe.
+
+
+```{r}
+## Creating the function to run prop.test and applying broom::tidy
+prop_homicide = function(df) {
+  prop_test_homicide = prop.test(df$unsolved_homicides, df$total_homicides, 
+            alternative = "two.sided", conf.level = 0.95, correct = FALSE)
+  
+  broom::tidy(prop_test_homicide) %>% 
+    select(estimate, conf.low, conf.high)
+}
+
+## Applying the prop.test function applied to Baltimore, MD
+wapo_homicide_summary %>% 
+  filter(city_state == "Baltimore, MD") %>% 
+  prop_homicide() %>% 
+  rename("Proportion of Unsolved Cases in Baltimore" = estimate, 
+         "Lower bound (95% CI)" = conf.low, 
+         "Upper bound (95% CI)" = conf.high) %>% 
   knitr::kable()
 ```
