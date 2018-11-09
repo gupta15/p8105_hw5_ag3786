@@ -123,7 +123,7 @@ wapo_homicide_summary %>%
   knitr::kable()
 ```
 
-## Unsolved homicides in Baltimore
+## Proportion of unsolved homicides in Baltimore
 
 For the city of Baltimore, MD, use the prop.test function to estimate the proportion of homicides that are unsolved; save the output of prop.test as an R object, apply the broom::tidy to this object and pull the estimated proportion and confidence intervals from the resulting tidy dataframe.
 
@@ -145,5 +145,21 @@ wapo_homicide_summary %>%
   rename("Proportion of Unsolved Cases in Baltimore" = estimate, 
          "Lower bound (95% CI)" = conf.low, 
          "Upper bound (95% CI)" = conf.high) %>% 
+  knitr::kable()
+```
+
+## Proportion of unsolved homicides in all cities
+Now run prop.test for each of the cities in your dataset, and extract both the proportion of unsolved homicides and the confidence interval for each. Do this within a “tidy” pipeline, making use of purrr::map, purrr::map2, list columns and  unnest as necessary to create a tidy dataframe with estimated proportions and CIs for each city.
+
+```{r}
+  wapo_homicide_summary = 
+  wapo_homicide_summary %>% 
+  nest(unsolved_homicides:total_homicides) %>% 
+  mutate(prop_tests = map(.x = .$data, ~prop_homicide(.x))) %>% 
+  unnest() %>% 
+  janitor::clean_names()
+
+wapo_homicide_summary %>% 
+  rename("City, State" = city_state, "Unsolved Homicides" = unsolved_homicides, "Total Homicides" = total_homicides, "Proportion of Unsolved Cases in Baltimore" = estimate, "Lower bound (95% CI)" = conf_low, "Upper bound (95% CI)" = conf_high) %>% 
   knitr::kable()
 ```
