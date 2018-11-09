@@ -28,7 +28,8 @@ library(viridis)
 # Problem 1
 These data are from a longitudinal study that included a control arm and an experimental arm. Data for each participant is included in a separate file, and file names include the subject ID and arm.
 
-## Create a tidy dataframe containing data from all participants, including the subject ID, arm, and observations over time
+## Create a tidy dataframe 
+Create a tidy dataframe containing data from all participants, including the subject ID, arm, and observations over time
 
 * Start with a dataframe containing all file names; the list.files function will help
 * Iterate over file names and read in data for each subject using purrr::map and saving the result as a new variable in the dataframe
@@ -57,4 +58,26 @@ data_combined =
                         "exp" = "experimental"))
 
 ```
+
+## Make a spaghetti plot 
+* Make a spaghetti plot showing observations on each subject over time, and comment on differences between groups
+
+```{r}
+data_combined %>% 
+  mutate(group = recode(group, "control" = "Control", "experimental" = "Experimental")) %>% 
+  ggplot(aes(x = week, y = observation, group = subject, color = subject)) + 
+    geom_path() + 
+    facet_grid(~group) + 
+    labs(
+      title = "Observations of Subjects over Time",
+      x = "Week",
+      y = "Observation"
+    ) + 
+    theme(legend.position = "bottom") +
+    viridis::scale_color_viridis(
+      name = "Subject ID", 
+      discrete = TRUE
+    )
+```
+
 
